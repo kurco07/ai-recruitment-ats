@@ -9,8 +9,10 @@ const INPUT_PRICE_PER_M = 0.59;
 const OUTPUT_PRICE_PER_M = 0.79;
 
 function calcCost(inputTokens, outputTokens) {
-  return (inputTokens / 1_000_000) * INPUT_PRICE_PER_M +
-    (outputTokens / 1_000_000) * OUTPUT_PRICE_PER_M;
+  return (
+    (inputTokens / 1_000_000) * INPUT_PRICE_PER_M +
+    (outputTokens / 1_000_000) * OUTPUT_PRICE_PER_M
+  );
 }
 
 function formatCost(usd) {
@@ -28,7 +30,10 @@ export default async function AiAuditPage({ searchParams }) {
 
   const { data: logs, count } = await supabase
     .from("ai_audit_logs")
-    .select("id, created_at, entity_type, model_version, input_tokens, output_tokens, total_tokens, latency_ms", { count: "exact" })
+    .select(
+      "id, created_at, entity_type, model_version, input_tokens, output_tokens, total_tokens, latency_ms",
+      { count: "exact" },
+    )
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -45,8 +50,8 @@ export default async function AiAuditPage({ searchParams }) {
 
   return (
     <AppShell title="IA & Tokens — Observabilidad">
-      <div className="mb-6 rounded-xl border border-indigo-800/50 bg-indigo-950/20 p-4">
-        <h2 className="font-semibold text-indigo-300">Optimización de tokens (Baremo #11)</h2>
+      {/* <div className="mb-6 rounded-xl border border-indigo-800/50 bg-indigo-950/20 p-4">
+        <h2 className="font-semibold text-indigo-300">Optimización de tokens</h2>
         <ul className="mt-2 space-y-1 text-sm text-slate-300">
           <li>• Limitar CV a 12.000 caracteres antes de enviar a la IA</li>
           <li>• Usar gpt-4o-mini para análisis masivo; reservar modelos grandes para casos críticos</li>
@@ -54,14 +59,18 @@ export default async function AiAuditPage({ searchParams }) {
           <li>• Pedir JSON estructurado con response_format para reducir tokens de salida</li>
           <li>• Temperatura baja (0.2) para respuestas más deterministas y concisas</li>
         </ul>
-      </div>
+      </div> */}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Total tokens" value={totalTokens.toLocaleString()} />
         <StatCard label="Input tokens" value={totalInput.toLocaleString()} />
         <StatCard label="Output tokens" value={totalOutput.toLocaleString()} />
         <StatCard label="Latencia media" value={`${avgLatency} ms`} />
-        <StatCard label="Costo total (Groq)" value={formatCost(totalCost)} hint="$0.59 input / $0.79 output per 1M" />
+        <StatCard
+          label="Costo total (Groq)"
+          value={formatCost(totalCost)}
+          hint="$0.59 input / $0.79 output per 1M"
+        />
       </div>
 
       <div className="mt-8 overflow-hidden rounded-xl border border-slate-800">
@@ -81,18 +90,25 @@ export default async function AiAuditPage({ searchParams }) {
               const cost = calcCost(log.input_tokens, log.output_tokens);
               return (
                 <tr key={log.id} className="border-t border-slate-800">
-                  <td className="px-4 py-3 text-slate-400">{formatDateTime(log.created_at)}</td>
+                  <td className="px-4 py-3 text-slate-400">
+                    {formatDateTime(log.created_at)}
+                  </td>
                   <td className="px-4 py-3">{log.entity_type}</td>
                   <td className="px-4 py-3">{log.model_version}</td>
                   <td className="px-4 py-3">{log.total_tokens}</td>
-                  <td className="px-4 py-3 text-emerald-400">{formatCost(cost)}</td>
+                  <td className="px-4 py-3 text-emerald-400">
+                    {formatCost(cost)}
+                  </td>
                   <td className="px-4 py-3">{log.latency_ms} ms</td>
                 </tr>
               );
             })}
             {!logs?.length && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                <td
+                  colSpan={6}
+                  className="px-4 py-8 text-center text-slate-500"
+                >
                   Sin registros. Sube un CV para generar auditoría IA.
                 </td>
               </tr>
@@ -100,7 +116,11 @@ export default async function AiAuditPage({ searchParams }) {
           </tbody>
         </table>
       </div>
-      <Pagination page={page} totalPages={totalPages} basePath="/recruiter/ai-audit" />
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        basePath="/recruiter/ai-audit"
+      />
     </AppShell>
   );
 }

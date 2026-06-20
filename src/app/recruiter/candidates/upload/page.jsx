@@ -13,8 +13,8 @@ export default async function UploadCvPage() {
   return (
     <AppShell title="Subir CV en PDF">
       <p className="mb-6 text-sm text-slate-400">
-        La IA extraerá skills, detectará seniority, generará score y sugerirá el siguiente paso del
-        proceso. El resultado dispara automatizaciones en n8n.
+        La IA extraerá skills, detectará seniority, generará score y sugerirá el
+        siguiente paso del proceso.
       </p>
       <CvUploadForm jobs={jobs || []} />
     </AppShell>

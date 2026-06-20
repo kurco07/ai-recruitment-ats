@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { extractTextFromPdf } from "@/lib/ai/extract-text";
-import { analyzeCvWithN8n, triggerN8nWorkflow, buildCvAnalyzedPayload } from "@/lib/n8n/client";
+import {
+  analyzeCvWithN8n,
+  triggerN8nWorkflow,
+  buildCvAnalyzedPayload,
+} from "@/lib/n8n/client";
 
 export async function POST(request) {
   try {
@@ -127,7 +131,7 @@ export async function POST(request) {
 
     let application = null;
     if (jobId) {
-      const score = aiResult.classification?.matchScore;
+      const score = aiResult.finalScore || aiResult.classification?.matchScore;
       const { data: app } = await admin
         .from("applications")
         .insert({
@@ -156,8 +160,8 @@ export async function POST(request) {
             admin
               .from("applications")
               .update({ ranking_position: i + 1 })
-              .eq("id", app.id)
-          )
+              .eq("id", app.id),
+          ),
         );
       }
     }
