@@ -10,23 +10,18 @@ export default async function CandidateDashboard() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("id", user.id)
-    .single();
-
-  const { data: candidate } = await supabase
+  const { data: candidates } = await supabase
     .from("candidates")
     .select("id")
-    .eq("email", profile?.email || "")
-    .maybeSingle();
+    .eq("user_id", user.id);
 
-  const { data: applications } = candidate
+  const candidateIds = (candidates || []).map((c) => c.id);
+
+  const { data: applications } = candidateIds.length > 0
     ? await supabase
         .from("applications")
-        .select(`*, job:jobs(title, id)`)
-        .eq("candidate_id", candidate.id)
+        .select(`*, job:jobs(title, id), candidate:candidates(full_name)`)
+        .in("candidate_id", candidateIds)
         .order("created_at", { ascending: false })
     : { data: [] };
 
@@ -45,15 +40,16 @@ export default async function CandidateDashboard() {
         <div className="space-y-4">
           {applications.map((app) => {
             const job = rel(app.job);
+            const candidate = rel(app.candidate);
             return (
-            <div key={app.id} className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+            <Link key={app.id} href={`/candidate/applications/${app.id}`} className="block rounded-xl border border-slate-800 bg-slate-900/50 p-5 transition hover:border-indigo-500/50">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <Link href={`/candidate/jobs/${job?.id}`} className="text-lg font-semibold hover:text-indigo-400">
+                  <p className="text-lg font-semibold hover:text-indigo-400">
                     {job?.title}
-                  </Link>
+                  </p>
                   <p className="mt-1 text-sm text-slate-400">
-                    Etapa: {STAGE_LABELS[app.stage]}
+                    {candidate?.full_name} · {STAGE_LABELS[app.stage]}
                   </p>
                 </div>
                 <div className="text-right">
@@ -67,7 +63,7 @@ export default async function CandidateDashboard() {
                 <Badge variant="info">{app.ai_next_step || "En revisión"}</Badge>
                 <span className="text-xs text-slate-500">{formatDate(app.created_at)}</span>
               </div>
-            </div>
+            </Link>
           );})}
         </div>
       )}

@@ -105,6 +105,7 @@ export async function POST(request) {
         ai_classification: aiResult.classification,
         ai_suggestions: aiResult.suggestions,
         ai_risk_level: aiResult.riskLevel,
+        user_id: user.id,
         created_by: user.id,
       })
       .select()

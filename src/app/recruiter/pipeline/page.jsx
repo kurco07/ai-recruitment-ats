@@ -5,6 +5,7 @@ import Link from "next/link";
 import { rel } from "@/lib/utils";
 import { StageAction } from "@/components/pipeline/stage-action";
 import { StageFilter } from "@/components/pipeline/stage-filter";
+import { AcceptCounterOffer } from "@/components/offer/accept-counter-offer";
 
 export default async function PipelinePage({ searchParams }) {
   const sp = await searchParams;
@@ -15,7 +16,7 @@ export default async function PipelinePage({ searchParams }) {
     .from("applications")
     .select(
       `
-      id, stage, score,
+      id, stage, score, salary_offered, offer_status, offer_counter_amount, offer_counter_position, offer_counter_notes, offer_pdf_url, notes,
       candidate:candidates(full_name, id),
       job:jobs(title, id),
       stage_history:stage_history(to_stage, rejection_reason, rejection_type, created_at)
@@ -94,17 +95,53 @@ export default async function PipelinePage({ searchParams }) {
                       />
                     )}
                     {app.stage === "offer" && (
-                      <div className="mt-2 flex gap-2">
-                        <StageAction
-                          applicationId={app.id}
-                          targetStage="hired"
-                          label="Contratar"
-                        />
-                        <StageAction
-                          applicationId={app.id}
-                          targetStage="rejected"
-                          label="Descartar"
-                        />
+                      <div className="mt-2 space-y-2">
+                        <div className="rounded-lg border border-emerald-800/30 bg-emerald-950/20 p-2">
+                          <p className="text-xs font-medium text-emerald-300">
+                            Salario: ${app.salary_offered ? Number(app.salary_offered).toLocaleString("es-US") : "—"}
+                          </p>
+                          {app.offer_status === "pending" && (
+                            <p className="text-xs text-slate-400">Pendiente de respuesta</p>
+                          )}
+                          {app.offer_status === "accepted" && (
+                            <p className="text-xs text-emerald-400">✓ Aceptado</p>
+                          )}
+                          {app.offer_status === "countered" && app.offer_counter_amount && (
+                            <p className="text-xs text-amber-400">
+                              ← Contraoferta: ${Number(app.offer_counter_amount).toLocaleString("es-US")}
+                              {app.offer_counter_position ? ` (${app.offer_counter_position})` : ""}
+                            </p>
+                          )}
+                          {app.offer_counter_notes && (
+                            <p className="mt-1 text-xs text-slate-500 italic">{app.offer_counter_notes}</p>
+                          )}
+                        </div>
+                        {app.offer_pdf_url && (
+                          <a
+                            href={app.offer_pdf_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block text-xs text-indigo-400 hover:text-indigo-300"
+                          >
+                            📄 Descargar contrato
+                          </a>
+                        )}
+                        {app.offer_status === "countered" ? (
+                          <AcceptCounterOffer applicationId={app.id} counterAmount={app.offer_counter_amount} counterPosition={app.offer_counter_position} />
+                        ) : (
+                          <div className="flex gap-2">
+                            <StageAction
+                              applicationId={app.id}
+                              targetStage="hired"
+                              label="Contratar"
+                            />
+                            <StageAction
+                              applicationId={app.id}
+                              targetStage="rejected"
+                              label="Descartar"
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                     {app.stage === "rejected" &&
